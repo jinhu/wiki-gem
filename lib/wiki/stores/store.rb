@@ -5,7 +5,7 @@ class Store
 
     def set(store_classname, app_root)
       # @store_class is literally the class FileStore by default, or if a class name is passed in, another subclass of Store
-      @store_class = store_classname ? Kernel.const_get(store_classname) : FileStore
+      @store_class = store_classname ? Kernel.const_get(store_classname) : GitStore
       @store_class.app_root = app_root
       @store_class
     end

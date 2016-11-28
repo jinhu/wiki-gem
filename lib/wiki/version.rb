@@ -1,3 +1,3 @@
 module Wiki
-  VERSION = "0.1.0"
+  VERSION = "6.12.1"
 end

@@ -152,7 +152,7 @@ class Controller < Sinatra::Base
     redirect "/#{identity['root']}.html"
   end
 
-  get %r{^/data/([\w -]+)$} do |search|
+  get %r{/data/([\w -]+)} do |search|
     content_type 'application/json'
     cross_origin
     pages = Store.annotated_pages farm_page.directory
@@ -166,12 +166,12 @@ class Controller < Sinatra::Base
     JSON.pretty_generate(candidates.first)
   end
 
-  get %r{^/([a-z0-9-]+)\.html$} do |name|
+  get %r{/([a-z0-9-]+)\.html} do |name|
     halt 404 unless farm_page.exists?(name)
     haml :page, :locals => { :page => farm_page.get(name), :page_name => name }
   end
 
-  get %r{^((/[a-zA-Z0-9:.-]+/[a-z0-9-]+(_rev\d+)?)+)$} do
+  get %r{((/[a-zA-Z0-9:.-]+/[a-z0-9-]+(_rev\d+)?)+)} do
     elements = params[:captures].first.split('/')
     pages = []
     elements.shift
@@ -216,7 +216,7 @@ class Controller < Sinatra::Base
     JSON.pretty_generate factories
   end
 
-  get %r{^/([a-z0-9-]+)\.json$} do |name|
+  get %r{/([a-z0-9-]+)\.json} do |name|
     content_type 'application/json'
     serve_page name
   end
@@ -225,7 +225,7 @@ class Controller < Sinatra::Base
     'Access forbidden'
   end
 
-  put %r{^/page/([a-z0-9-]+)/action$} do |name|
+  put %r{/page/([a-z0-9-]+)/action} do |name|
     unless authenticated? or (!identified? and !claimed?)
       halt 403
       return
@@ -274,7 +274,7 @@ class Controller < Sinatra::Base
     "ok"
   end
 
-  get %r{^/remote/([a-zA-Z0-9:\.-]+)/([a-z0-9-]+)\.json$} do |site, name|
+  get %r{/remote/([a-zA-Z0-9:\.-]+)/([a-z0-9-]+)\.json} do |site, name|
     content_type 'application/json'
     host = site.split(':').first
     if serve_resources_locally?(host)
@@ -293,7 +293,7 @@ class Controller < Sinatra::Base
     end
   end
 
-  get %r{^/remote/([a-zA-Z0-9:\.-]+)/favicon.png$} do |site|
+  get %r{/remote/([a-zA-Z0-9:\.-]+)/favicon.png} do |site|
     content_type 'image/png'
     host = site.split(':').first
     if serve_resources_locally?(host)

@@ -5,6 +5,11 @@
       "type": "paragraph",
       "id": "3612993fa4635787",
       "text": "wweellkkoomm"
+    },
+    {
+      "type": "paragraph",
+      "id": "6810ccd4bdb01802",
+      "text": ""
     }
   ],
   "journal": [
@@ -36,6 +41,17 @@
         "text": "wweellkkoomm"
       },
       "date": 1480396452851
+    },
+    {
+      "item": {
+        "type": "paragraph",
+        "id": "6810ccd4bdb01802",
+        "text": ""
+      },
+      "id": "6810ccd4bdb01802",
+      "type": "add",
+      "after": "3612993fa4635787",
+      "date": 1480396453356
     }
   ]
 }

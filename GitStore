@@ -1,0 +1,30 @@
+{
+  "title": "Welcome",
+  "story": [
+    {
+      "type": "factory",
+      "id": "3612993fa4635787"
+    }
+  ],
+  "journal": [
+    {
+      "type": "create",
+      "item": {
+        "title": "Welcome",
+        "story": [
+
+        ]
+      },
+      "date": 1480396053252
+    },
+    {
+      "item": {
+        "type": "factory",
+        "id": "3612993fa4635787"
+      },
+      "id": "3612993fa4635787",
+      "type": "add",
+      "date": 1480396152999
+    }
+  ]
+}

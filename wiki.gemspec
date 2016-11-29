@@ -7,8 +7,8 @@ Gem::Specification.new do |spec|
   spec.name          = "wiki"
   spec.platform      = Gem::Platform::RUBY
   spec.version       = Wiki::VERSION
-  spec.authors       = ["Ward Cunningham", "Jonan Scheffler", "Daniel Stark", "Harlan T Wood"]
-  spec.email         = ["ward@c2.com", "jonanscheffler@gmail.com", "daniel@studiostark.com", "code@harlantwood.net"]
+  spec.authors       = ["Ward Cunningham", "Jonan Scheffler", "Daniel Stark", "Harlan T Wood", "Jinmin Hu"]
+  spec.email         = ["ward@c2.com", "jonanscheffler@gmail.com", "daniel@studiostark.com", "code@harlantwood.net", "jin@hukelou.com"]
   spec.summary   = %q{A Federated Wiki Server}
   spec.description       = %q{Wiki is a single-page application for browsing and editing content distributed throughout a federation of similar creative-commons licensed sites. What is a federated wiki, and why does federation matter? Authors throughout the federation pull content towards themselves as they edit. With this package authors publish their own edits back to the federation as they edit.}
   spec.homepage      = "http://fed.wiki.org"
@@ -18,7 +18,8 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
-  spec.add_runtime_dependency 'sinatra' ,'2.0.0.beta2'
+  spec.add_runtime_dependency 'sinatra', '2.0.0.beta2'
+  spec.add_runtime_dependency 'rugged',  '0.24.0'
   spec.add_runtime_dependency 'thin'
   spec.add_runtime_dependency 'png'
   spec.add_runtime_dependency 'openid'

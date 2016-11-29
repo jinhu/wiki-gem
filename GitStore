@@ -2,8 +2,9 @@
   "title": "Welcome",
   "story": [
     {
-      "type": "factory",
-      "id": "3612993fa4635787"
+      "type": "paragraph",
+      "id": "3612993fa4635787",
+      "text": "wweellkkoomm"
     }
   ],
   "journal": [
@@ -25,6 +26,16 @@
       "id": "3612993fa4635787",
       "type": "add",
       "date": 1480396152999
+    },
+    {
+      "type": "edit",
+      "id": "3612993fa4635787",
+      "item": {
+        "type": "paragraph",
+        "id": "3612993fa4635787",
+        "text": "wweellkkoomm"
+      },
+      "date": 1480396452851
     }
   ]
 }

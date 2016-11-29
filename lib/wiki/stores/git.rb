@@ -4,7 +4,6 @@ class GitStore < Store
 class << self
 
   def app_root= root
-    @app_root=root
     @repo = Rugged::Repository.new(root)
     if(@repo.head_unborn?)
       @repo = Rugged::Repository.init_at(root)
@@ -26,13 +25,13 @@ class << self
     def put_text(path, text, metadata=nil)
       # Note: metadata is ignored for filesystem storage
       File.open(path, 'w'){ |file| file.write text }
-      oid = Rugged::Blob.from_workdir @repo, path.sub(@app_root,"")
+      oid = Rugged::Blob.from_workdir @repo, name
       index = @repo.index
 
       index.add(:path => name, :oid => oid, :mode => 0100644)
       index.write
       options = {}
-      options[:tree] = index.write_tree(@repo)
+      options[:tree] = index.write_tree(repo)
 
       options[:author] = {  :email => "testuser@github.com",
                             :name => 'Test Author',
@@ -41,10 +40,10 @@ class << self
                               :name => 'Test Author',
                               :time => Time.now }
       options[:message] =  "write #{ name }"
-      options[:parents] = @repo.empty? ? [] : [ @repo.head.target ].compact
+      options[:parents] = repo.empty? ? [] : [ repo.head.target ].compact
       options[:update_ref] = 'HEAD'
 
-      commit = Rugged::Commit.create(@repo, options)
+      commit = Rugged::Commit.create(repo, options)
       text
     end
 

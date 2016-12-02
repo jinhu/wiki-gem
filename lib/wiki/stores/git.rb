@@ -22,6 +22,11 @@ class << self
     end
 
     ### PUT
+  def put_hash(path, ruby_data, metadata={})
+    json = JSON.pretty_generate(ruby_data['story'])
+    put_text path, json, metadata
+    ruby_data
+  end
 
     def put_text(path, text, metadata=nil)
       # Note: metadata is ignored for filesystem storage

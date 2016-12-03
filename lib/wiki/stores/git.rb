@@ -3,10 +3,14 @@ require 'rugged'
 class GitStore < Store
 
   # singleton
-  @@instance = MyClass.new
 
-  def self.instance
+  def self.instance app_root
+    if @@instance==nil
+      @@instance = GitStore.new app_root
+
+    end
     @@instance
+
   end
 
   def initialize app_root
@@ -99,4 +103,4 @@ class GitStore < Store
     File.exists?(path)
   end
 end
-end
+

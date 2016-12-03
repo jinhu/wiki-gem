@@ -14,6 +14,7 @@ class Page
     attr_accessor :default_directory
     # Directory where plugins that may have pages are stored.
     attr_accessor :plugins_directory
+    @@store = GitStore.instance(APP_ROOT)
 
     def plugin_page_path name
       if pages = Dir.glob(File.join(plugins_directory, 'wiki-plugin-*', 'pages', name))
@@ -29,13 +30,13 @@ class Page
       assert_attributes_set
       path = File.join(directory, name)
       default_path = File.join(default_directory, name)
-      page = Store.get_page(path)
+      page = @@store.get_page(path)
       if page
         page
       elsif File.exist?(default_path)
-        FileStore.get_page(default_path)
+        @@store.get_page(default_path)
       elsif (path = plugin_page_path name)
-        page = FileStore.get_page(path)
+        page = @@store.get_page(path)
         page['plugin'] = path.match(/#{self.plugins_directory}\/wiki-plugin-(.*?)\/pages/)[1]
         page
       else
@@ -44,7 +45,7 @@ class Page
     end
 
     def exists?(name)
-      Store.exists?(File.join(directory, name)) or
+      GitStore.exists?(File.join(directory, name)) or
       File.exist?(File.join(default_directory, name)) or
       !plugin_page_path(name).nil?
     end
@@ -58,7 +59,7 @@ class Page
       assert_attributes_set
       path = File.join directory, name
       page.delete 'plugin'
-      Store.put_page(path, page, :name => name, :directory => directory)
+      @@store.put_page(path, page, :name => name, :directory => directory)
     end
 
     private

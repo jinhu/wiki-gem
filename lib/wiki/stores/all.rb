@@ -1,1 +1,1 @@
-equire File.expand_path('git', File.dirname(__FILE__))
+require File.expand_path('git', File.dirname(__FILE__))

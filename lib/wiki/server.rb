@@ -19,6 +19,8 @@ require 'openid'
 require 'openid/store/filesystem'
 
 class Controller < Sinatra::Base
+  @@store = GitStore.instance(APP_ROOT)
+
   set :port, 1111
   set :public_folder, File.join(APP_ROOT, "node_modules/wiki-client/client")
   set :views , File.join(SINATRA_ROOT, "views")
@@ -32,7 +34,6 @@ class Controller < Sinatra::Base
   end
   helpers ServerHelpers
 
-  store = GitStore.instance(APP_ROOT)
 
   class << self # overridden in test
     def data_root
@@ -45,25 +46,25 @@ class Controller < Sinatra::Base
     page.directory = File.join data_dir(site), "pages"
     page.default_directory = File.join APP_ROOT, "default-data", "pages"
     page.plugins_directory = File.join APP_ROOT, "node_modules"
-    GitStore.mkdir page.directory
+    @@store.mkdir page.directory
     page
   end
 
   def farm_status(site=request.host)
     status = File.join data_dir(site), "status"
-    GitStore.mkdir status
+    @@store.mkdir status
     status
   end
 
   def data_dir(site)
-    GitStore.farm?(self.class.data_root) ? File.join(self.class.data_root, "farm", site) : self.class.data_root
+    @@store.farm?(self.class.data_root) ? File.join(self.class.data_root, "farm", site) : self.class.data_root
   end
 
   def identity
     default_path = File.join APP_ROOT, "default-data", "status", "local-identity"
     real_path = File.join farm_status, "local-identity"
-    id_data = GitStore.get_hash real_path
-    id_data ||= GitStore.put_hash(real_path, FileGitStore.get_hash(default_path))
+    id_data = @@store.get_hash real_path
+    id_data ||= @@store.put_hash(real_path, @@store.get_hash(default_path))
   end
 
   get /\/plugins\/(.*?)\/(.*)/ do |plugin, file|
@@ -79,7 +80,7 @@ class Controller < Sinatra::Base
     begin
       root_url = request.url.match(/(^.*\/{2}[^\/]*)/)[1]
       identifier_file = File.join farm_status, "open_id.identifier"
-      identifier = GitStore.get_text(identifier_file)
+      identifier = @@store.get_text(identifier_file)
       unless identifier
         identifier = params[:identifier]
       end
@@ -104,7 +105,7 @@ class Controller < Sinatra::Base
         when OpenID::Consumer::SUCCESS
           id = params['openid.identity']
           id_file = File.join farm_status, "open_id.identity"
-          stored_id = GitStore.get_text(id_file)
+          stored_id = @@store.get_text(id_file)
           if stored_id
             if stored_id == id
               # login successful
@@ -113,7 +114,7 @@ class Controller < Sinatra::Base
               oops 403, "This is not your wiki"
             end
           else
-            GitStore.put_text id_file, id
+            @@store.put_text id_file, id
             # claim successful
             authenticate!
           end
@@ -146,7 +147,7 @@ class Controller < Sinatra::Base
 
     content_type 'image/png'
     path = File.join farm_status, 'favicon.png'
-    GitStore.put_blob path, Favicon.create_blob
+    @@store.put_blob path, Favicon.create_blob
   end
 
   get '/' do
@@ -156,7 +157,7 @@ class Controller < Sinatra::Base
   get %r{/data/([\w -]+)} do |search|
     content_type 'application/json'
     cross_origin
-    pages = GitStore.annotated_pages farm_page.directory
+    pages = @@store.annotated_pages farm_page.directory
     candidates = pages.select do |page|
       datasets = page['story'].select do |item|
         item['type']=='data' && item['text'] && item['text'].index(search)
@@ -199,7 +200,7 @@ class Controller < Sinatra::Base
   get '/system/sitemap.json' do
     content_type 'application/json'
     cross_origin
-    pages = GitStore.annotated_pages farm_page.directory
+    pages = @@store.annotated_pages farm_page.directory
     sitemap = pages.collect {|p| {"slug" => p['name'], "title" => p['title'], "date" => p['updated_at'].to_i*1000, "synopsis" => synopsis(p)}}
     JSON.pretty_generate sitemap
   end
@@ -257,12 +258,12 @@ class Controller < Sinatra::Base
     when 'move'
       page['story'] = action['order'].collect{ |id| page['story'].detect{ |item| item['id'] == id } || raise('Ignoring move. Try reload.') }
     when 'add'
-      before = action['after'] ? 1+page['story'].index{|item| item['id'] == action['after']} : 0
-      page['story'].insert before, action['item']
+      # before = action['after'] ? 1+page['story'].index{|item| item['id'] == action['after']} : 0
+      page['story'][action['id']] = action['item']
     when 'remove'
       page['story'].delete_at page['story'].index{ |item| item['id'] == action['id'] }
     when 'edit'
-      page['story'][page['story'].index{ |item| item['id'] == action['id'] }] = action['item']
+      page['story'][action['id']]=action['item']
     when 'create', 'fork'
       page['story'] ||= []
     else

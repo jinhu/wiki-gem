@@ -26,11 +26,11 @@ module ServerHelpers
   end
 
   def identified?
-    Store.exists? "#{farm_status}/open_id.identifier"
+    GitStore.exists? "#{farm_status}/open_id.identifier"
   end
 
   def claimed?
-    Store.exists? "#{farm_status}/open_id.identity"
+    GitStore.exists? "#{farm_status}/open_id.identity"
   end
 
   def authenticate!

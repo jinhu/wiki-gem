@@ -23,7 +23,7 @@ class Favicon
     end
 
     def get_or_create(path)
-      Store.get_blob(path) || Store.put_blob(path, Favicon.create_blob)
+      GitStore.get_blob(path) || GitStore.put_blob(path, Favicon.create_blob)
     end
 
   end

@@ -10,7 +10,7 @@ APP_ROOT = File.expand_path(File.join(SINATRA_ROOT, "..", ".."))
 Encoding.default_external = Encoding::UTF_8
 
 require 'server_helpers'
-require 'stores/all'
+require 'stores/git'
 require 'random_id'
 require 'page'
 require 'favicon'
@@ -31,7 +31,7 @@ class Controller < Sinatra::Base
   end
   helpers ServerHelpers
 
-  Store.set ENV['STORE_TYPE'], APP_ROOT
+  GitStore.set ENV['STORE_TYPE'], APP_ROOT
 
   class << self # overridden in test
     def data_root
@@ -44,25 +44,25 @@ class Controller < Sinatra::Base
     page.directory = File.join data_dir(site), "pages"
     page.default_directory = File.join APP_ROOT, "default-data", "pages"
     page.plugins_directory = File.join APP_ROOT, "node_modules"
-    Store.mkdir page.directory
+    GitStore.mkdir page.directory
     page
   end
 
   def farm_status(site=request.host)
     status = File.join data_dir(site), "status"
-    Store.mkdir status
+    GitStore.mkdir status
     status
   end
 
   def data_dir(site)
-    Store.farm?(self.class.data_root) ? File.join(self.class.data_root, "farm", site) : self.class.data_root
+    GitStore.farm?(self.class.data_root) ? File.join(self.class.data_root, "farm", site) : self.class.data_root
   end
 
   def identity
     default_path = File.join APP_ROOT, "default-data", "status", "local-identity"
     real_path = File.join farm_status, "local-identity"
-    id_data = Store.get_hash real_path
-    id_data ||= Store.put_hash(real_path, FileStore.get_hash(default_path))
+    id_data = GitStore.get_hash real_path
+    id_data ||= GitStore.put_hash(real_path, FileGitStore.get_hash(default_path))
   end
 
   get /\/plugins\/(.*?)\/(.*)/ do |plugin, file|
@@ -78,7 +78,7 @@ class Controller < Sinatra::Base
     begin
       root_url = request.url.match(/(^.*\/{2}[^\/]*)/)[1]
       identifier_file = File.join farm_status, "open_id.identifier"
-      identifier = Store.get_text(identifier_file)
+      identifier = GitStore.get_text(identifier_file)
       unless identifier
         identifier = params[:identifier]
       end
@@ -103,7 +103,7 @@ class Controller < Sinatra::Base
         when OpenID::Consumer::SUCCESS
           id = params['openid.identity']
           id_file = File.join farm_status, "open_id.identity"
-          stored_id = Store.get_text(id_file)
+          stored_id = GitStore.get_text(id_file)
           if stored_id
             if stored_id == id
               # login successful
@@ -112,7 +112,7 @@ class Controller < Sinatra::Base
               oops 403, "This is not your wiki"
             end
           else
-            Store.put_text id_file, id
+            GitStore.put_text id_file, id
             # claim successful
             authenticate!
           end
@@ -145,7 +145,7 @@ class Controller < Sinatra::Base
 
     content_type 'image/png'
     path = File.join farm_status, 'favicon.png'
-    Store.put_blob path, Favicon.create_blob
+    GitStore.put_blob path, Favicon.create_blob
   end
 
   get '/' do
@@ -155,7 +155,7 @@ class Controller < Sinatra::Base
   get %r{/data/([\w -]+)} do |search|
     content_type 'application/json'
     cross_origin
-    pages = Store.annotated_pages farm_page.directory
+    pages = GitStore.annotated_pages farm_page.directory
     candidates = pages.select do |page|
       datasets = page['story'].select do |item|
         item['type']=='data' && item['text'] && item['text'].index(search)
@@ -198,7 +198,7 @@ class Controller < Sinatra::Base
   get '/system/sitemap.json' do
     content_type 'application/json'
     cross_origin
-    pages = Store.annotated_pages farm_page.directory
+    pages = GitStore.annotated_pages farm_page.directory
     sitemap = pages.collect {|p| {"slug" => p['name'], "title" => p['title'], "date" => p['updated_at'].to_i*1000, "synopsis" => synopsis(p)}}
     JSON.pretty_generate sitemap
   end

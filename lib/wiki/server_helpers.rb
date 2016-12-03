@@ -62,5 +62,32 @@ module ServerHelpers
     return text
   end
 
+
+  def farm_page(site=request.host)
+    page = Page.new
+    page.directory = File.join data_dir(site), "pages"
+    page.default_directory = File.join APP_ROOT, "default-data", "pages"
+    page.plugins_directory = File.join APP_ROOT, "node_modules"
+    @@store.mkdir page.directory
+    page
+  end
+
+  def farm_status(site=request.host)
+    status = File.join data_dir(site), "status"
+    @@store.mkdir status
+    status
+  end
+
+  def data_dir(site)
+    @@store.farm?(self.class.data_root) ? File.join(self.class.data_root, "farm", site) : self.class.data_root
+  end
+
+  def identity
+    default_path = File.join APP_ROOT, "default-data", "status", "local-identity"
+    real_path = File.join farm_status, "local-identity"
+    id_data = @@store.get_hash( real_path)[:story]
+    id_data ||= @@store.put_hash(real_path, @@store.get_hash(default_path))
+  end
+
 end
 

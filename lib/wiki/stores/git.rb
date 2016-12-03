@@ -15,21 +15,13 @@ class GitStore
 
   def initialize app_root
     @data_root=app_root+"/data"
-    @repo = Rugged::Repository.new(@data_root)
-    if (@repo.head_unborn?)
-      @repo = Rugged::Repository.init_at(@data_root)
-    end
+    @repo = Rugged::Repository.init_at(@data_root)
   end
 
 
   def get_hash(path)
-    page = {}
     json = get_text path
-    if json
-      page['story']= JSON.parse(json)
-    else
-      page['story']= {}
-    end
+    story= JSON.parse(json) if json
     git_item = path.sub(@data_root+"/", "")
 
     walker = Rugged::Walker.new(@repo)
@@ -49,9 +41,11 @@ class GitStore
       end
 
     end
-    page['journal']=paths
-    page['title'] = git_item
-    page
+    {
+        journal: paths,
+        title: git_item,
+        story: story
+    }
   end
 
 
@@ -65,8 +59,10 @@ class GitStore
 
   ### PUT
   def put_hash(path, ruby_data, metadata={})
-    json = JSON.pretty_generate(ruby_data['story'])
-    put_text path, json, ruby_data['journal']
+    if ruby_data
+      json = JSON.pretty_generate(ruby_data[:story])
+      put_text path, json, ruby_data[:journal]
+    end
     ruby_data
   end
 

@@ -1,11 +1,10 @@
 require 'json'
-require File.expand_path("../random_id", __FILE__)
-require File.expand_path("../stores/all", __FILE__)
+require File.expand_path("../stores/git", __FILE__)
 
 class PageError < StandardError; end;
 
 # Page Class
-# Handles writing and reading JSON data to and from files.
+# Handles writing and reading JSON data to and from git.
 class Page
 
     # Directory where pages are to be stored.

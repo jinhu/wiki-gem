@@ -80,7 +80,7 @@ class Controller < Sinatra::Base
   def serve_page(name, site=request.host)
     cross_origin
     halt 404 unless @@store.farm_page(site).exists?(name)
-    JSON.pretty_generate @@store.farm_page(site).get(name)
+    JSON.pretty_generate @@store.farm_page.get(name)
   end
 
 
@@ -224,7 +224,7 @@ class Controller < Sinatra::Base
   post '/login' do
     begin
       root_url = request.url.match(/(^.*\/{2}[^\/]*)/)[1]
-      identifier_file = File.join @@store.farm_status(request.host), "open_id.identifier"
+      identifier_file = File.join @@store.farm_status(request.host), "_open_id.identifier"
       identifier = @@store.get_text(identifier_file)
       unless identifier
         identifier = params[:identifier]
@@ -277,7 +277,7 @@ class Controller < Sinatra::Base
     content_type 'image/png'
     headers 'Cache-Control' => "max-age=3600"
     cross_origin
-    Favicon.get_or_create(File.join farm_status, 'favicon.png')
+    Favicon.get_or_create(File.join @@store.farm_status, 'favicon.png')
   end
 
   get '/random.png' do

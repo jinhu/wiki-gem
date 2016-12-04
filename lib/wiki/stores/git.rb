@@ -156,7 +156,7 @@ class GitStore
   end
 
   def identified? site=@site
-    File.exists? "#{farm_status site}/open_id.identifier"
+    File.exists? "#{farm_status site}/_open_id.identifier"
   end
   def claimed? site=@site
     File.exists? "#{farm_status site}/open_id.identity"

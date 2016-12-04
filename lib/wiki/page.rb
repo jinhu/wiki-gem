@@ -31,6 +31,7 @@ class Page
       default_path = File.join(default_directory, name)
       page = @@store.get_page(path)
       if page
+        page[:story]=page[:story].values
         page
       elsif File.exist?(default_path)
         @@store.get_page(default_path)

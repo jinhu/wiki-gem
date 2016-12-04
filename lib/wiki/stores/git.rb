@@ -123,6 +123,44 @@ class GitStore
     File.exists?(path)
   end
 
+  def find(search)
+    pages = annotated_pages farm_page.directory
+    candidates = pages.select do |page|
+      datasets = page[:story].select do |key, item|
+        item['type']=='paragraph' && item['text'] && item['text'].index(search)
+      end
+      datasets.length > 0
+    end
+  end
+
+
+  def data_dir(site)
+    @site = site
+    farm?(@data_root) ? File.join(@data_root, "farm", site) : @data_root
+  end
+
+  def farm_status(site=@site)
+    status = File.join data_dir(site), "status"
+    mkdir status
+    status
+  end
+
+  def farm_page(site=@site)
+    page = Page.new
+    page.directory = File.join data_dir(site), "pages"
+    page.default_directory = File.join APP_ROOT, "default-data", "pages"
+    page.plugins_directory = File.join APP_ROOT, "node_modules"
+    mkdir page.directory
+    page
+  end
+
+  def identified? site=@site
+    File.exists? "#{farm_status site}/open_id.identifier"
+  end
+  def claimed? site=@site
+    File.exists? "#{farm_status site}/open_id.identity"
+  end
+
   alias_method :get_page, :get_hash
   alias_method :put_page, :put_hash
 end

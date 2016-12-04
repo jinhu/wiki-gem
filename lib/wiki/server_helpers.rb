@@ -25,13 +25,7 @@ module ServerHelpers
     session[:authenticated] == true
   end
 
-  def identified?
-    GitStore.exists? "#{farm_status}/open_id.identifier"
-  end
 
-  def claimed?
-    GitStore.exists? "#{farm_status}/open_id.identity"
-  end
 
   def authenticate!
     session[:authenticated] = true
@@ -46,11 +40,6 @@ module ServerHelpers
     !!ENV['FARM_DOMAINS'] && ENV['FARM_DOMAINS'].split(',').any?{|domain| site.end_with?(domain)}
   end
 
-  def serve_page(name, site=request.host)
-    cross_origin
-    halt 404 unless farm_page(site).exists?(name)
-    JSON.pretty_generate farm_page(site).get(name)
-  end
 
   def synopsis page
     text = page['synopsis']
@@ -62,31 +51,11 @@ module ServerHelpers
     return text
   end
 
-
-  def farm_page(site=request.host)
-    page = Page.new
-    page.directory = File.join data_dir(site), "pages"
-    page.default_directory = File.join APP_ROOT, "default-data", "pages"
-    page.plugins_directory = File.join APP_ROOT, "node_modules"
-    @@store.mkdir page.directory
-    page
-  end
-
-  def farm_status(site=request.host)
-    status = File.join data_dir(site), "status"
-    @@store.mkdir status
-    status
-  end
-
-  def data_dir(site)
-    @@store.farm?(self.class.data_root) ? File.join(self.class.data_root, "farm", site) : self.class.data_root
-  end
-
-  def identity
+  def identity store
     default_path = File.join APP_ROOT, "default-data", "status", "local-identity"
-    real_path = File.join farm_status, "local-identity"
-    id_data = @@store.get_hash( real_path)[:story]
-    id_data ||= @@store.put_hash(real_path, @@store.get_hash(default_path))
+    real_path = File.join farm_status(store), "local-identity"
+    id_data = store.get_hash( real_path)[:story]
+    id_data ||= store.put_hash(real_path, store.get_hash(default_path))
   end
 
 end

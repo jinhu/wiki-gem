@@ -20,3 +20,13 @@ end
 get '/' do
   redirect "/#{identity['root']}.html"
 end
+
+get %r{/remote/([a-zA-Z0-9:\.-]+)/favicon.png} do |site|
+  content_type 'image/png'
+  host = site.split(':').first
+  if serve_resources_locally?(host)
+    Favicon.get_or_create(File.join farm_status(host), 'favicon.png')
+  else
+    RestClient.get "#{site}/favicon.png"
+  end
+end

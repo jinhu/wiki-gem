@@ -51,12 +51,6 @@ module ServerHelpers
     return text
   end
 
-  def identity store
-    default_path = File.join APP_ROOT, "default-data", "status", "local-identity"
-    real_path = File.join farm_status(store), "local-identity"
-    id_data = store.get_hash( real_path)[:story]
-    id_data ||= store.put_hash(real_path, store.get_hash(default_path))
-  end
 
 end
 

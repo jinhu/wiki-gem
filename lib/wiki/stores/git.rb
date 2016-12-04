@@ -68,12 +68,13 @@ class GitStore
 
   def put_text(path, text, metadata=nil)
     # Note: metadata is ignored for filesystem storage
-    File.open(path, 'w') { |file| file.write text }
+    # File.open(path, 'w') { |file| file.write text }
     # FileUtils.mkdir_p path
     git_item = path.sub(@data_root+"/", "")
-    oid = Rugged::Blob.from_workdir @repo, git_item
+    # oid = Rugged::Blob.from_workdir @repo, git_item
+    oid = @repo.write(text, :blob)
     index = @repo.index
-
+    index.read_tree(repo.head.target.tree)
     index.add(:path => git_item, :oid => oid, :mode => 0100644)
     index.write
     options = {}
@@ -159,6 +160,13 @@ class GitStore
   end
   def claimed? site=@site
     File.exists? "#{farm_status site}/open_id.identity"
+  end
+
+  def identity
+    default_path = File.join APP_ROOT, "default-data", "status", "local-identity"
+    real_path = File.join farm_status, "local-identity"
+    id_data = get_hash( real_path)[:story]
+    id_data ||= put_hash(real_path, get_hash(default_path))
   end
 
   alias_method :get_page, :get_hash

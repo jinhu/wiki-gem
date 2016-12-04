@@ -258,10 +258,12 @@ class Controller < Sinatra::Base
     when 'add'
       before = action['after'] ? 1+page['story'].index{|item| item['id'] == action['after']} : 0
       page['story'].insert before, action['item']
-    when 'remove'
-      page['story'].delete_at page['story'].index{ |item| item['id'] == action['id'] }
+      when 'remove'
+        i = find_index_of(  page[:story], action['id'])
+        page[:story].delete_at i
     when 'edit'
-      page['story'][page['story'].index{ |item| item['id'] == action['id'] }] = action['item']
+      i = find_index_of(  page[:story], action['id'])
+      page[:story][i] = action['item']
     when 'create', 'fork'
       page['story'] ||= []
     else
@@ -272,6 +274,15 @@ class Controller < Sinatra::Base
     ( page['journal'] ||= [] ) << action
     farm_page.put name, page
     "ok"
+  end
+
+  def find_index_of(stories, id)
+    stories.each_with_index { |item, index|
+    if  item['id'] == id
+      return index
+    end
+    }
+    return -1
   end
 
   get %r{/remote/([a-zA-Z0-9:\.-]+)/([a-z0-9-]+)\.json} do |site, name|

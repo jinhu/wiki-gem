@@ -19,7 +19,14 @@ class Store
 
     def get_hash(path)
       json = get_text path
-      JSON.parse json if json
+      json_value= JSON.parse json if json
+      story = []
+      story+=json_value.values
+      {
+          story: story,
+          title: path,
+          journal: []
+      }
     end
 
     alias_method :get_page, :get_hash

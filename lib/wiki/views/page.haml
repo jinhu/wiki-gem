@@ -2,9 +2,9 @@
 	%h1
 		%a{:href => '/', :style => "text-decoration: none"}
 			%img{:src => '/favicon.png', :height => '32px'}
-		= page['title']
+		= page[:title]
 	.story
-		- page['story'].each do |item|
+		- page[:story].each do |item|
 			%div{:class => ['item', type=item['type']], :id => item['id'], "data-static-item" => item.to_json}
 				- case type
 				- when 'paragraph'

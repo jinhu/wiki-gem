@@ -21,7 +21,7 @@ require 'openid/store/filesystem'
 class Controller < Sinatra::Base
   set :port, 1111
   set :public_folder, File.join(APP_ROOT, "node_modules/wiki-client/client")
-  set :views , File.join(SINATRA_ROOT, "views")
+  set :views, File.join(SINATRA_ROOT, "views")
   set :haml, :format => :html5
   set :versions, `git log -10 --oneline` || "no git log"
   if ENV.include?('SESSION_STORE')
@@ -62,6 +62,7 @@ class Controller < Sinatra::Base
     default_path = File.join APP_ROOT, "default-data", "status", "local-identity"
     real_path = File.join farm_status, "local-identity"
     id_data = Store.get_hash real_path
+    id_data=id_data['story']
     id_data ||= Store.put_hash(real_path, FileStore.get_hash(default_path))
   end
 
@@ -127,7 +128,7 @@ class Controller < Sinatra::Base
   get '/system/slugs.json' do
     content_type 'application/json'
     cross_origin
-    JSON.pretty_generate(Dir.entries(farm_page.directory).reject{|e|e[0] == '.'})
+    JSON.pretty_generate(Dir.entries(farm_page.directory).reject { |e| e[0] == '.' })
   end
 
   get '/favicon.png' do
@@ -168,7 +169,7 @@ class Controller < Sinatra::Base
 
   get %r{^/([a-z0-9-]+)\.html$} do |name|
     halt 404 unless farm_page.exists?(name)
-    haml :page, :locals => { :page => farm_page.get(name), :page_name => name }
+    haml :page, :locals => {:page => farm_page.get(name), :page_name => name}
   end
 
   get %r{^((/[a-zA-Z0-9:.-]+/[a-z0-9-]+(_rev\d+)?)+)$} do
@@ -191,7 +192,7 @@ class Controller < Sinatra::Base
     plugins = []
     path = File.join(APP_ROOT, "client/plugins")
     pathname = Pathname.new path
-    Dir.glob("#{path}/*/") {|filename| plugins << Pathname.new(filename).relative_path_from(pathname)}
+    Dir.glob("#{path}/*/") { |filename| plugins << Pathname.new(filename).relative_path_from(pathname) }
     JSON.pretty_generate plugins
   end
 
@@ -199,7 +200,7 @@ class Controller < Sinatra::Base
     content_type 'application/json'
     cross_origin
     pages = Store.annotated_pages farm_page.directory
-    sitemap = pages.collect {|p| {"slug" => p['name'], "title" => p['title'], "date" => p['updated_at'].to_i*1000, "synopsis" => synopsis(p)}}
+    sitemap = pages.collect { |p| {"slug" => p['name'], "title" => p['title'], "date" => p['updated_at'].to_i*1000, "synopsis" => synopsis(p)} }
     JSON.pretty_generate sitemap
   end
 
@@ -212,7 +213,7 @@ class Controller < Sinatra::Base
         JSON.parse(File.read(info))
       rescue
       end
-    end.reject {|info| info.nil?}
+    end.reject { |info| info.nil? }
     JSON.pretty_generate factories
   end
 
@@ -235,7 +236,7 @@ class Controller < Sinatra::Base
     if site = action['fork']
       # this fork is bundled with some other action
       page = JSON.parse RestClient.get("#{site}/#{name}.json")
-      ( page['journal'] ||= [] ) << { 'type' => 'fork', 'site' => site }
+      (page['journal'] ||= []) << {'type' => 'fork', 'site' => site}
       farm_page.put name, page
       action.delete 'fork'
     elsif action['type'] == 'create'
@@ -253,23 +254,32 @@ class Controller < Sinatra::Base
     end
 
     case action['type']
-    when 'move'
-      page['story'] = action['order'].collect{ |id| page['story'].detect{ |item| item['id'] == id } || raise('Ignoring move. Try reload.') }
-    when 'add'
-      before = action['after'] ? 1+page['story'].index{|item| item['id'] == action['after']} : 0
-      page['story'].insert before, action['item']
-    when 'remove'
-      page['story'].delete_at page['story'].index{ |item| item['id'] == action['id'] }
-    when 'edit'
-      page['story'][page['story'].index{ |item| item['id'] == action['id'] }] = action['item']
-    when 'create', 'fork'
-      page['story'] ||= []
-    else
-      puts "unfamiliar action: #{action.inspect}"
-      status 501
-      return "unfamiliar action"
+      when 'move'
+        page['story'] = action['order'].collect { |id| page['story'].detect { |item| item['id'] == id } || raise('Ignoring move. Try reload.') }
+      when 'add'
+        index = 1+page['story'].index { |item| item['id'] == action['after'] }
+        before = action['after'] ? index : 0
+        page['story'].insert before, action['item']
+      when 'remove'
+        index = page['story'].index { |item| item['id'] == action['id'] }
+        if (index)
+          page['story'].delete_at index
+        end
+      when 'edit'
+        index = page['story'].index { |item| item['id'] == action['id'] }
+        if (index)
+          page['story'][index] = action['item']
+        else
+          page['story']<< action['item']
+        end
+      when 'create', 'fork'
+        page['story'] ||= []
+      else
+        puts "unfamiliar action: #{action.inspect}"
+        status 501
+        return "unfamiliar action"
     end
-    ( page['journal'] ||= [] ) << action
+    (page['journal'] ||= []) << action
     farm_page.put name, page
     "ok"
   end
@@ -282,12 +292,12 @@ class Controller < Sinatra::Base
     else
       RestClient.get "#{site}/#{name}.json" do |response, request, result, &block|
         case response.code
-        when 200
-          response
-        when 404
-          halt 404
-        else
-          response.return!(request, result, &block)
+          when 200
+            response
+          when 404
+            halt 404
+          else
+            response.return!(request, result, &block)
         end
       end
     end
@@ -316,18 +326,18 @@ class Controller < Sinatra::Base
       farm_page(spawn).put slug, page
     end
     citation = {
-      "type"=> "reference",
-      "id"=> RandomId.generate,
-      "site"=> site,
-      "slug"=> "recent-changes",
-      "title"=> "Recent Changes",
-      "text"=> bundle.collect{|slug, page| "<li> [[#{page['title']||slug}]]"}.join("\n")
+        "type" => "reference",
+        "id" => RandomId.generate,
+        "site" => site,
+        "slug" => "recent-changes",
+        "title" => "Recent Changes",
+        "text" => bundle.collect { |slug, page| "<li> [[#{page['title']||slug}]]" }.join("\n")
     }
     action = {
-      "type"=> "add",
-      "id"=> citation['id'],
-      "date"=> Time.new.to_i*1000,
-      "item"=> citation
+        "type" => "add",
+        "id" => citation['id'],
+        "date" => Time.new.to_i*1000,
+        "item" => citation
     }
     slug = 'recent-submissions'
     page = farm_page.get slug

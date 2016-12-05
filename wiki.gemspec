@@ -31,5 +31,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'ruby-openid'
   spec.add_runtime_dependency 'couchrest'
   spec.add_runtime_dependency 'memcache-client'
+  spec.add_runtime_dependency 'rugged'
 
 end

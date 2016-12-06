@@ -17,3 +17,5 @@ test/version_tmp
 tmp
 data/
 node_modules/
+.DS_Store
+.idea
